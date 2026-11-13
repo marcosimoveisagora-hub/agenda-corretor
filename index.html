@@ -70,6 +70,7 @@
   .alert .atitle{font-size:22px;font-weight:700;color:var(--teal)}
   .alert .atime{color:var(--muted);margin-top:4px}
   .alert .btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px}
+  .alert .editlink{display:block;width:100%;margin-top:10px;background:none;border:0;color:var(--teal);font-weight:600;font-size:15px;padding:10px;text-decoration:underline;cursor:pointer}
   .unlock{background:var(--gold);color:var(--ink);text-align:center;font-size:14px;padding:8px;cursor:pointer;display:none}
   .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:60;max-width:90%}
   textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:10px;padding:10px;font:13px monospace}
@@ -138,6 +139,7 @@
         <button id="aDone">Concluir</button>
         <button class="accent" id="aSnooze">Adiar 10 min</button>
       </div>
+      <button type="button" class="editlink" id="aEdit">✏️ Editar tarefa</button>
     </div>
   </div>
 </div>
@@ -249,7 +251,7 @@
     <ol>
       <li>Criar tarefa por frase: <i>amanhã às 9 e meia ligar para a Ana</i>.</li>
       <li>Criar uma Visita com horário fixo e uma tarefa sem horário.</li>
-      <li>Esperar um aviso: Iniciar, Concluir, Adiar 10 min.</li>
+      <li>Esperar um aviso: Iniciar, Concluir, Adiar 10 min ou Editar tarefa.</li>
       <li>Trocar o som em Configurações e testar seu próprio som.</li>
       <li>Abrir uma tarefa no <b>📅 Google Agenda</b> e exportar o dia.</li>
       <li>Usar <b>Copiar meus dados</b> e <b>Restaurar dados</b> (seus dados ficam só neste aparelho).</li>
@@ -557,6 +559,7 @@
   function closeAlert(){ $('alert').classList.remove('open'); document.title = 'Agenda do Corretor — versão de teste'; current = null; render(); }
   $('aStart').onclick = () => { if(current && !current.test){ current.startedAt = Date.now(); current.lastRemind = Date.now(); save(); } closeAlert(); };
   $('aDone').onclick = () => { if(current && !current.test){ setDone(current, true); } closeAlert(); };
+  $('aEdit').onclick = () => { const t = current; if(t && !t.test){ t.snoozeUntil = Date.now() + 10*60000; t.lastRemind = Date.now(); save(); closeAlert(); openTask(t); } else closeAlert(); };
   $('aSnooze').onclick = () => { if(current && !current.test){ current.snoozeUntil = Date.now() + 10*60000; current.lastRemind = Date.now(); save(); toast('Volto a avisar em 10 minutos.'); } closeAlert(); };
 
   function tick(){
