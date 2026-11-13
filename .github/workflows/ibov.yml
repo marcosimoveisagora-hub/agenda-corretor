@@ -1,0 +1,39 @@
+name: Atualiza IBOVESPA
+on:
+  schedule:
+    - cron: '*/30 13-21 * * 1-5'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  ibov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Buscar cotacao
+        run: |
+          curl -fsS -A "Mozilla/5.0" "https://query1.finance.yahoo.com/v8/finance/chart/%5EBVSP?interval=1d&range=5d" -o raw.json
+          python3 - <<'PY'
+          import json, datetime
+          r = json.load(open('raw.json'))['chart']['result'][0]
+          m = r['meta']
+          price = float(m['regularMarketPrice'])
+          rmt = int(m['regularMarketTime'])
+          ts = r['timestamp']
+          cl = r['indicators']['quote'][0]['close']
+          pairs = [(t, c) for t, c in zip(ts, cl) if c is not None]
+          day = lambda t: (datetime.datetime.utcfromtimestamp(t - 10800)).date()
+          prev = None
+          if pairs:
+              prev = pairs[-2][1] if (day(pairs[-1][0]) == day(rmt) and len(pairs) > 1) else pairs[-1][1]
+          pct = round((price / prev - 1) * 100, 2) if prev else None
+          out = {'value': price, 'pct': pct, 'time': datetime.datetime.utcfromtimestamp(rmt).strftime('%Y-%m-%dT%H:%M:%SZ')}
+          json.dump(out, open('ibov.json', 'w'))
+          print(out)
+          PY
+      - name: Salvar
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add ibov.json
+          git diff --cached --quiet || (git commit -m "Atualiza IBOVESPA" && git push)
