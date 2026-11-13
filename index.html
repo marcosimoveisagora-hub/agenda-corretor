@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda do Corretor — versão de teste</title>
+<style>
+  :root{
+    --teal:#0F3D3E; --teal2:#2A7F78; --mint:#B8D8D3; --tint:#EEF4F3; --orange:#E8833A; --gold:#F2C14E;
+    --ink:#1B1B1B; --muted:#5F6B6A; --red:#C0504D; --bg:#F6F8F8; --card:#FFFFFF; --line:#DCE5E3;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:16px}
+  button,input,select{font:inherit}
+  button{cursor:pointer;border:0;border-radius:10px;padding:10px 14px;background:var(--tint);color:var(--teal);font-weight:600}
+  button.primary{background:var(--teal);color:#fff}
+  button.accent{background:var(--orange);color:#1B1B1B}
+  button.ghost{background:transparent;color:var(--teal2);padding:6px 8px}
+  button.danger{background:#FBEBEB;color:var(--red)}
+  input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 14px 170px}
+  header{background:var(--teal);color:#fff;padding:16px 0 18px}
+  header .wrap{padding-bottom:0}
+  .brand{font-size:12px;letter-spacing:.08em;color:var(--mint);font-weight:700}
+  .hello{font-size:22px;font-weight:700;margin:4px 0 12px}
+  .daynav{display:flex;align-items:center;gap:8px}
+  .daynav button{background:rgba(255,255,255,.12);color:#fff;padding:8px 12px}
+  .daynav .day{flex:1;text-align:center;font-weight:600}
+  .progress{margin-top:12px;height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden}
+  .progress>div{height:100%;background:var(--gold);width:0;transition:width .3s}
+  .ptext{font-size:13px;color:var(--mint);margin-top:6px}
+  .proto{background:#FFF4E5;color:#7A4A12;font-size:13px;padding:8px 12px;border-radius:10px;margin:12px 0}
+  .quick{background:var(--card);border-radius:14px;padding:12px;margin:14px 0;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .quick .row{display:flex;gap:8px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .preview{margin-top:8px;font-size:14px;color:var(--teal);background:var(--tint);padding:8px 10px;border-radius:8px;display:none}
+  .task{background:var(--card);border-radius:14px;padding:12px 12px 10px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.06);border:2px solid transparent}
+  .task.started{border-color:var(--teal2)}
+  .task.done{opacity:.55}
+  .task.done .title{text-decoration:line-through}
+  .task .top{display:flex;gap:10px;align-items:flex-start}
+  .task input[type=checkbox]{width:22px;height:22px;margin-top:2px;accent-color:var(--teal2);flex:none}
+  .task .time{font-weight:700;color:var(--teal);font-size:14px}
+  .task .title{font-weight:600}
+  .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--tint);color:var(--teal2);margin-left:6px;vertical-align:middle}
+  .chip.fixed{background:#FDF3D8;color:#7A5A00}
+  .task .actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;padding-left:32px}
+  .subs{padding-left:32px;margin-top:6px}
+  .subs label{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14px;margin:4px 0}
+  .subs input{width:18px;height:18px}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px}
+  .bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+  .bottom .wrap{display:flex;gap:8px;padding:0;flex-wrap:wrap}
+  .bottom button{flex:1;min-width:110px;padding:9px 8px;font-size:14px}
+  .modal{position:fixed;inset:0;background:rgba(15,61,62,.55);display:none;align-items:flex-start;justify-content:center;padding:20px 12px;overflow:auto;z-index:20}
+  .modal.open{display:flex}
+  .sheet{background:#fff;border-radius:16px;max-width:520px;width:100%;padding:18px}
+  .sheet h2{margin:0 0 4px;color:var(--teal);font-size:20px}
+  .sheet .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .cats span{background:var(--tint);color:var(--teal);padding:4px 6px 4px 10px;border-radius:20px;font-size:13px;display:flex;align-items:center;gap:4px}
+  .cats span button{padding:0 6px;background:transparent;color:var(--red)}
+  .alert{position:fixed;inset:0;background:rgba(15,61,62,.85);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .alert.open{display:flex}
+  .alert .card{background:#fff;border-radius:18px;max-width:440px;width:100%;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .alert .band{background:var(--orange);padding:14px 18px;font-weight:800;font-size:18px}
+  .alert .body{padding:18px}
+  .alert .atitle{font-size:22px;font-weight:700;color:var(--teal)}
+  .alert .atime{color:var(--muted);margin-top:4px}
+  .alert .btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px}
+  .unlock{background:var(--gold);color:var(--ink);text-align:center;font-size:14px;padding:8px;cursor:pointer;display:none}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:60;max-width:90%}
+  textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:10px;padding:10px;font:13px monospace}
+  .sr{position:absolute;left:-9999px}
+  a.gcal{display:inline-block;color:var(--teal2);font-weight:600;font-size:14px;padding:6px 8px;text-decoration:none;border-radius:10px}
+  a.gcal:hover{background:var(--tint)}
+  .help h3{margin:16px 0 4px;color:var(--teal);font-size:16px}
+  .help ol,.help ul{margin:4px 0 4px 18px;padding:0}
+  .help li{margin:4px 0;font-size:14px}
+  .note{font-size:13px;color:#7A4A12;background:#FFF4E5;border-radius:10px;padding:8px 10px;margin:8px 0}
+  a.wa{display:block;text-align:center;text-decoration:none;background:#25D366;color:#073B1A;font-weight:700;border-radius:10px;padding:10px 14px;margin-top:8px}
+  .calrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  @media (max-width:520px){.grid2{grid-template-columns:1fr}.alert .btns{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="unlock" id="unlock">🔈 Toque aqui para ativar os sons dos avisos</div>
+<header>
+  <div class="wrap">
+    <div class="brand">AGENDA DO CORRETOR</div>
+    <div class="hello" id="hello">Seu dia</div>
+    <div class="daynav">
+      <button id="prev" aria-label="Dia anterior">‹</button>
+      <div class="day" id="dayLabel"></div>
+      <button id="next" aria-label="Próximo dia">›</button>
+      <button id="today">Hoje</button>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Progresso do dia"><div id="bar"></div></div>
+    <div class="ptext" id="ptext"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="proto"><b>Versão de teste.</b> Suas tarefas ficam salvas só neste navegador e neste aparelho. Os avisos tocam com a página aberta. Toque em <b>Ajuda</b> para instruções e para mandar seu feedback.</div>
+
+  <form class="quick" id="quickForm">
+    <label for="quick" style="margin-top:0">Diga ou digite uma tarefa</label>
+    <div class="row">
+      <input id="quick" autocomplete="off" placeholder="amanhã às 9 e meia ligar para a Ana">
+      <button class="primary" type="submit">Criar</button>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="hint">No celular, toque no 🎤 do teclado para ditar. Entende hoje, amanhã, depois de amanhã, dias da semana, "dia 15", "15/11", 14h30, "9 e meia" e meio-dia. Sem horário, vai para o próximo horário livre.</div>
+  </form>
+
+  <div id="list"></div>
+</main>
+
+<div class="bottom"><div class="wrap">
+  <button class="primary" id="addBtn">+ Nova tarefa</button>
+  <button id="testBtn">Testar aviso</button>
+  <button id="calBtn">📅 Calendário</button>
+  <button id="settingsBtn">Configurações</button>
+  <button id="helpBtn">❓ Ajuda e feedback</button>
+</div></div>
+
+<!-- Aviso -->
+<div class="alert" id="alert" role="alertdialog" aria-modal="true" aria-labelledby="aTitle">
+  <div class="card">
+    <div class="band" id="aBand">⏰ COMEÇA AGORA</div>
+    <div class="body">
+      <div class="atitle" id="aTitle"></div>
+      <div class="atime" id="aTime"></div>
+      <div class="btns">
+        <button class="primary" id="aStart">Iniciar</button>
+        <button id="aDone">Concluir</button>
+        <button class="accent" id="aSnooze">Adiar 10 min</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Formulário de tarefa -->
+<div class="modal" id="taskModal">
+  <form class="sheet" id="taskForm">
+    <h2 id="taskFormTitle">Nova tarefa</h2>
+    <label for="fTitle">Título</label><input id="fTitle" required>
+    <div class="grid2">
+      <div><label for="fDate">Data</label><input id="fDate" type="date" required></div>
+      <div><label for="fCat">Categoria</label><select id="fCat"></select></div>
+      <div><label for="fStart">Início</label><input id="fStart" type="time" required></div>
+      <div><label for="fEnd">Término</label><input id="fEnd" type="time" required></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input id="fFixed" type="checkbox" style="width:18px;height:18px"> Horário fixo (ex.: visita marcada)</label>
+    <label for="fSubs">Subtarefas (uma por linha)</label>
+    <textarea id="fSubs" style="min-height:70px;font:inherit"></textarea>
+    <div class="btns">
+      <button type="button" class="danger" id="fDelete" style="margin-right:auto">Excluir</button>
+      <button type="button" id="fCancel">Cancelar</button>
+      <button class="primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Configurações -->
+<div class="modal" id="setModal">
+  <form class="sheet" id="setForm">
+    <h2 id="setTitle">Configurações</h2>
+    <div class="hint" id="setIntro"></div>
+    <label for="sName">Seu nome</label><input id="sName" placeholder="Como quer ser chamado">
+    <div class="grid2">
+      <div><label for="sStart">Início do expediente</label><input id="sStart" type="time" required></div>
+      <div><label for="sEnd">Fim do expediente</label><input id="sEnd" type="time" required></div>
+      <div><label for="sInterval">Repetir aviso de pendência a cada</label>
+        <select id="sInterval"><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="0">Não repetir</option></select></div>
+      <div><label for="sDur">Duração padrão da tarefa</label>
+        <select id="sDur"><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">1 hora</option><option value="90">1h30</option></select></div>
+    </div>
+    <label>Categorias</label>
+    <div class="cats" id="sCats"></div>
+    <div class="row" style="display:flex;gap:8px;margin-top:8px"><input id="sNewCat" placeholder="Nova categoria"><button type="button" id="sAddCat">Adicionar</button></div>
+    <label for="sSound">Som do aviso</label>
+    <div style="display:flex;gap:8px"><select id="sSound"></select><button type="button" id="sPlay">Ouvir</button></div>
+    <label for="sFile">Usar meu próprio som (MP3, WAV ou M4A, até 1 MB)</label>
+    <input id="sFile" type="file" accept="audio/*">
+    <div class="hint" id="sFileInfo"></div>
+    <label for="sVol">Volume</label><input id="sVol" type="range" min="0" max="1" step="0.05" style="padding:0">
+    <label>Cópia de segurança</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="sExport">Copiar meus dados</button><button type="button" id="sImportBtn">Restaurar dados</button></div>
+    <div id="importBox" style="display:none;margin-top:8px"><textarea id="importText" placeholder="Cole aqui os dados copiados antes"></textarea><button type="button" class="primary" id="importDo" style="margin-top:6px">Restaurar</button></div>
+    <div class="btns">
+      <button type="button" id="sCancel">Fechar</button>
+      <button class="primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Confirmação -->
+<div class="modal" id="confirmModal">
+  <div class="sheet">
+    <h2 id="cTitle">Confirmar</h2>
+    <p id="cText"></p>
+    <div class="btns"><button id="cNo">Cancelar</button><button class="primary" id="cYes">Confirmar</button></div>
+  </div>
+</div>
+
+<!-- Calendário -->
+<div class="modal" id="calModal">
+  <div class="sheet">
+    <h2>Google Agenda e outros calendários</h2>
+    <div class="hint">Cada tarefa tem o link <b>📅 Google Agenda</b>, que abre o Google Agenda já preenchido: é só confirmar. Para levar o dia todo de uma vez, gere o arquivo .ics e importe.</div>
+    <div class="calrow">
+      <button class="primary" id="icsDay">Exportar o dia aberto (.ics)</button>
+      <button id="icsAll">Exportar todas as pendentes (.ics)</button>
+    </div>
+    <div id="icsBox" style="display:none;margin-top:10px">
+      <div class="hint">O download não abriu neste navegador. Copie o texto abaixo, cole num bloco de notas e salve como <b>agenda.ics</b>.</div>
+      <textarea id="icsText" readonly></textarea>
+      <button type="button" id="icsCopy" style="margin-top:6px">Copiar texto</button>
+    </div>
+    <h3 style="margin:14px 0 4px;color:var(--teal);font-size:15px">Como importar o arquivo no Google Agenda</h3>
+    <ol class="help" style="margin-left:18px;padding:0">
+      <li>No computador, abra calendar.google.com.</li>
+      <li>Engrenagem → Configurações → <b>Importar e exportar</b> → Importar.</li>
+      <li>Escolha o arquivo .ics e a agenda de destino.</li>
+    </ol>
+    <div class="note">É uma cópia de um sentido: o que você muda depois no Google não volta para esta agenda, e o que muda aqui precisa ser exportado de novo.</div>
+    <div class="btns"><button id="calClose">Fechar</button></div>
+  </div>
+</div>
+
+<!-- Ajuda e feedback -->
+<div class="modal" id="helpModal">
+  <div class="sheet help">
+    <h2>Ajuda e feedback</h2>
+    <div class="hint">Obrigado por testar. Leva uns 10 minutos.</div>
+    <h3>1. Deixe no seu celular ou computador</h3>
+    <ul>
+      <li><b>iPhone (Safari):</b> botão de compartilhar → Adicionar à Tela de Início.</li>
+      <li><b>Android (Chrome):</b> menu ⋮ → Adicionar à tela inicial.</li>
+      <li><b>Computador:</b> salve o link nos favoritos.</li>
+    </ul>
+    <h3>2. Ative o som</h3>
+    <ul><li>Toque uma vez na tela e use <b>Testar aviso</b>. Se não tocar, veja o volume e o modo silencioso do aparelho.</li></ul>
+    <div class="note"><b>Importante:</b> nesta versão de teste os avisos só aparecem e tocam com a página <b>aberta</b> (pode ficar em outra aba). Com a tela bloqueada ou o navegador fechado, não avisa. É a principal coisa que queremos saber se faz falta.</div>
+    <h3>3. O que testar</h3>
+    <ol>
+      <li>Criar tarefa por frase: <i>amanhã às 9 e meia ligar para a Ana</i>.</li>
+      <li>Criar uma Visita com horário fixo e uma tarefa sem horário.</li>
+      <li>Esperar um aviso: Iniciar, Concluir, Adiar 10 min.</li>
+      <li>Trocar o som em Configurações e testar seu próprio som.</li>
+      <li>Abrir uma tarefa no <b>📅 Google Agenda</b> e exportar o dia.</li>
+      <li>Usar <b>Copiar meus dados</b> e <b>Restaurar dados</b> (seus dados ficam só neste aparelho).</li>
+    </ol>
+    <h3>4. Seu feedback</h3>
+    <label for="fbRating">Nota de 1 a 5</label>
+    <select id="fbRating"><option value="">Escolha</option><option>1 — não usaria</option><option>2</option><option>3 — ok</option><option>4</option><option>5 — usaria todo dia</option></select>
+    <label for="fbLike">O que você mais gostou</label><textarea id="fbLike" style="min-height:60px;font:inherit"></textarea>
+    <label for="fbBad">O que atrapalhou ou faltou</label><textarea id="fbBad" style="min-height:60px;font:inherit"></textarea>
+    <label for="fbPay">Pagaria por isto? Quanto acharia justo por mês ou pagamento único?</label><input id="fbPay" placeholder="Ex.: R$ 27 único, ou não pagaria">
+    <label for="fbDev">Seu aparelho</label><input id="fbDev">
+    <div class="hint">O envio é pelo seu WhatsApp: ele abre com o texto pronto e você escolhe o contato de quem te mandou este link.</div>
+    <a class="wa" id="fbWa" href="#" target="_blank" rel="noopener">Enviar feedback pelo WhatsApp</a>
+    <div class="calrow"><button type="button" id="fbCopy">Copiar o texto do feedback</button></div>
+    <div class="btns"><button id="helpClose">Fechar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// Interpreta frases como "amanhã às 9 e meia ligar para a Ana".
+// Usado no navegador (global) e em testes no Node (module.exports).
+(function (root) {
+  const NUM_WORDS = [
+    ['vinte e tres', '23'], ['vinte e duas', '22'], ['vinte e dois', '22'], ['vinte e uma', '21'], ['vinte e um', '21'],
+    ['dezenove', '19'], ['dezoito', '18'], ['dezessete', '17'], ['dezesseis', '16'], ['quinze', '15'],
+    ['quatorze', '14'], ['catorze', '14'], ['treze', '13'], ['doze', '12'], ['onze', '11'], ['dez', '10'],
+    ['nove', '9'], ['oito', '8'], ['sete', '7'], ['seis', '6'], ['cinco', '5'], ['quatro', '4'], ['tres', '3'],
+    ['duas', '2'], ['dois', '2'], ['uma', '1'], ['um', '1'], ['vinte', '20'], ['trinta', '30'], ['quarenta', '40'],
+  ];
+  const WEEKDAYS = { domingo: 0, segunda: 1, terca: 2, quarta: 3, quinta: 4, sexta: 5, sabado: 6 };
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const strip = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+  function guessCategory(t) {
+    if (/visita|decorado|showroom|stand/.test(t)) return 'Visita';
+    if (/ligar|liga para|follow|retorn|whats|mensagem|responder|cliente|lead/.test(t)) return 'Follow-up';
+    if (/document|contrato|banco|caixa|financiamento|simula/.test(t)) return 'Documentação';
+    if (/anunc|campanha|trafego|ads/.test(t)) return 'Anúncios';
+    if (/post|reels|video|conteudo|stories|gravar/.test(t)) return 'Conteúdo';
+    if (/estud|curso|ler|livro/.test(t)) return 'Estudo';
+    return null;
+  }
+
+  function parse(text, now) {
+    now = now || new Date();
+    const original = String(text || '').trim();
+    // Trabalha numa versão sem acentos e em minúsculas; guarda as posições para limpar o título.
+    let s = ' ' + strip(original.toLowerCase()).replace(/[,.;!?]/g, ' ') + ' ';
+    s = s.replace(/meio[\s-]dia/g, ' 12h00 ');
+    for (const [w, n] of NUM_WORDS) s = s.replace(new RegExp('(^|\\s)' + w + '(?=\\s)', 'g'), '$1' + n);
+    s = s.replace(/\s+/g, ' ');
+
+    let date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let dateFound = false;
+    const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], ' '); return true; } return false; };
+
+    // Datas
+    take(/\s(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?(?=\s)/, (m) => {
+      let y = m[3] ? +m[3] : now.getFullYear(); if (y < 100) y += 2000;
+      let d = new Date(y, +m[2] - 1, +m[1]);
+      if (!m[3] && d < date) d = new Date(y + 1, +m[2] - 1, +m[1]);
+      date = d; dateFound = true;
+    }) ||
+    take(/\s(?:no\s)?dia\s(\d{1,2})(?=\s)/, (m) => {
+      let d = new Date(now.getFullYear(), now.getMonth(), +m[1]);
+      if (d < date) d = new Date(now.getFullYear(), now.getMonth() + 1, +m[1]);
+      date = d; dateFound = true;
+    }) ||
+    take(/\sdepois de amanha(?=\s)/, () => { date.setDate(date.getDate() + 2); dateFound = true; }) ||
+    take(/\samanha(?=\s)/, () => { date.setDate(date.getDate() + 1); dateFound = true; }) ||
+    take(/\shoje(?=\s)/, () => { dateFound = true; }) ||
+    take(/\s(?:na\s|no\s|proxima\s|proximo\s)?(domingo|segunda|terca|quarta|quinta|sexta|sabado)(?:[\s-]feira)?(?=\s)/, (m) => {
+      let ahead = (WEEKDAYS[m[1]] - date.getDay() + 7) % 7; if (ahead === 0) ahead = 7;
+      date.setDate(date.getDate() + ahead); dateFound = true;
+    });
+
+    // Horários
+    let hh = null, mm = 0;
+    take(/\s(?:as\s|a\s|para as\s)?(\d{1,2})\s?(?:h|:)\s?(\d{2})?(?:\s?min)?(?:\shoras?)?(?=\s)/, (m) => { hh = +m[1]; mm = m[2] ? +m[2] : 0; }) ||
+    take(/\s(?:as\s|a\s)?(\d{1,2})\se\smeia(?=\s)/, (m) => { hh = +m[1]; mm = 30; }) ||
+    take(/\s(?:as\s|a\s)?(\d{1,2})\se\s(\d{1,2})(?=\s)/, (m) => { hh = +m[1]; mm = +m[2]; }) ||
+    take(/\sas\s(\d{1,2})(?:\shoras?)?(?=\s)/, (m) => { hh = +m[1]; }) ||
+    take(/\s(\d{1,2})\shoras?(?=\s)/, (m) => { hh = +m[1]; });
+    if (hh !== null) {
+      if (/\s(da|de) (tarde|noite)\s/.test(s) && hh < 12) hh += 12;
+      s = s.replace(/\s(da|de) (manha|tarde|noite)\s/, ' ');
+      if (hh > 23 || mm > 59) hh = null;
+    }
+
+    // Título: remove palavras de comando e sobras
+    let title = s.replace(/^\s*(adicionar|adiciona|agendar|agenda|marcar|marca|criar|cria|lembrar de|me lembra de|lembrete|nova tarefa|tarefa)\s/, ' ')
+      .replace(/\s(as|a|ao|para as|pra|no|na|em)\s*$/, ' ')
+      .replace(/\s+/g, ' ').trim();
+    // Recupera acentos do texto original quando a palavra existe nele
+    const words = original.split(/\s+/);
+    title = title.split(' ').map((w) => words.find((o) => strip(o.toLowerCase()).replace(/[,.;!?]/g, '') === w) || w).join(' ');
+    title = title.replace(/[,.;!?]+$/, '');
+    if (title) title = title.charAt(0).toUpperCase() + title.slice(1);
+
+    const category = guessCategory(strip(original.toLowerCase()));
+    return {
+      title: title || 'Nova tarefa',
+      date: iso(date),
+      dateFound,
+      time: hh === null ? null : pad(hh) + ':' + pad(mm),
+      category,
+    };
+  }
+
+  const api = { parse, iso, pad };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.FraseAgenda = api;
+})(this);
+
+</script>
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const {parse, iso, pad} = window.FraseAgenda;
+  const KEY = 'agenda-corretor-v1';
+  const DEFAULT_CATS = ['Atendimento','Follow-up','Visita','Documentação','Anúncios','Conteúdo','Estudo','Pessoal'];
+  const SOUNDS = {sino:'Sino', bipe:'Bipe duplo', marimba:'Marimba', alerta:'Alerta suave', custom:'Meu som'};
+
+  // ---------- Dados ----------
+  let state = load();
+  function blank(){ return {settings:{name:'',start:'08:00',end:'20:00',interval:10,duration:60,cats:DEFAULT_CATS.slice(),sound:'sino',customSound:null,customName:'',volume:0.8,setupDone:false},tasks:[]}; }
+  function load(){
+    try{ const raw = localStorage.getItem(KEY); if(raw){ const s = JSON.parse(raw); const b = blank(); s.settings = Object.assign(b.settings, s.settings||{}); s.tasks = s.tasks||[]; return s; } }catch(e){}
+    return blank();
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast('Não consegui salvar neste navegador. Use "Copiar meus dados" para não perder nada.'); } }
+  const S = () => state.settings;
+
+  // ---------- Utilidades de horário ----------
+  const toMin = (t) => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+  const fromMin = (m) => { m = Math.max(0, Math.min(23*60+59, m)); return pad(Math.floor(m/60))+':'+pad(m%60); };
+  const nowMin = () => { const d = new Date(); return d.getHours()*60+d.getMinutes(); };
+  const todayIso = () => iso(new Date());
+  const fmtDay = (isoStr) => { const [y,m,d] = isoStr.split('-').map(Number); const dt = new Date(y,m-1,d); return dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}); };
+  const uid = () => Math.random().toString(36).slice(2,10);
+
+  function tasksOn(date){ return state.tasks.filter(t => t.date===date && !t.cancelled).sort((a,b)=>a.start.localeCompare(b.start)); }
+  function overlaps(date, start, end, ignoreId){ return tasksOn(date).some(t => t.id!==ignoreId && toMin(start) < toMin(t.end) && toMin(t.start) < toMin(end)); }
+  function nextFree(date, dur){
+    let from = toMin(S().start);
+    if(date===todayIso()) from = Math.max(from, Math.ceil(nowMin()/5)*5);
+    const endDay = toMin(S().end);
+    for(let m = from; m + dur <= endDay; m += 5){ if(!overlaps(date, fromMin(m), fromMin(m+dur))) return fromMin(m); }
+    return null;
+  }
+
+  // ---------- Tela ----------
+  let selected = todayIso();
+  function render(){
+    $('hello').textContent = S().name ? 'Bom trabalho, ' + S().name : 'Seu dia';
+    $('dayLabel').textContent = (selected===todayIso() ? 'Hoje · ' : '') + fmtDay(selected);
+    const list = tasksOn(selected);
+    let done = 0;
+    list.forEach(t => { if(t.done) done += 1; else if(t.subs && t.subs.length) done += t.subs.filter(s=>s.done).length / t.subs.length; });
+    const pct = list.length ? Math.round(done/list.length*100) : 0;
+    $('bar').style.width = pct + '%';
+    $('ptext').textContent = list.length ? pct + '% do dia · ' + list.filter(t=>t.done).length + ' de ' + list.length + ' tarefas concluídas' : 'Nenhuma tarefa neste dia';
+    const el = $('list'); el.innerHTML = '';
+    if(!list.length){ el.innerHTML = '<div class="empty">Nada marcado. Crie uma tarefa acima ou em "+ Nova tarefa".</div>'; return; }
+    list.forEach(t => {
+      const c = document.createElement('div');
+      c.className = 'task' + (t.done?' done':'') + (t.startedAt && !t.done?' started':'');
+      c.innerHTML = `<div class="top"><input type="checkbox" ${t.done?'checked':''} aria-label="Concluir tarefa">
+        <div style="flex:1"><div class="time">${t.start} – ${t.end}<span class="chip">${esc(t.cat)}</span>${t.fixed?'<span class="chip fixed">fixo</span>':''}${t.startedAt&&!t.done?'<span class="chip">em andamento</span>':''}</div>
+        <div class="title">${esc(t.title)}</div></div></div>
+        <div class="subs"></div>
+        <div class="actions"><button class="ghost" data-a="start">Iniciar</button><button class="ghost" data-a="edit">Editar</button><a class="gcal" target="_blank" rel="noopener" href="${esc(gcalUrl(t))}">📅 Google Agenda</a></div>`;
+      c.querySelector('input').addEventListener('change', (e) => setDone(t, e.target.checked));
+      const subs = c.querySelector('.subs');
+      (t.subs||[]).forEach((s,i) => {
+        const l = document.createElement('label');
+        l.innerHTML = `<input type="checkbox" ${s.done?'checked':''}> <span>${esc(s.t)}</span>`;
+        l.querySelector('input').addEventListener('change', (e) => { s.done = e.target.checked; if(t.subs.every(x=>x.done) && !t.done){ setDone(t,true); return; } if(!e.target.checked && t.done){ t.done=false; } save(); render(); });
+        subs.appendChild(l);
+      });
+      c.querySelector('[data-a=start]').addEventListener('click', () => { t.startedAt = Date.now(); save(); render(); toast('Tarefa iniciada.'); });
+      c.querySelector('[data-a=edit]').addEventListener('click', () => openTask(t));
+      el.appendChild(c);
+    });
+  }
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  function setDone(t, val){ t.done = val; if(t.subs) t.subs.forEach(s => s.done = val); if(val){ t.startedAt = null; playSound(true); } save(); render(); }
+
+  $('prev').onclick = () => shiftDay(-1);
+  $('next').onclick = () => shiftDay(1);
+  $('today').onclick = () => { selected = todayIso(); render(); };
+  function shiftDay(n){ const [y,m,d] = selected.split('-').map(Number); selected = iso(new Date(y,m-1,d+n)); render(); }
+
+  // ---------- Criação por frase ----------
+  function interpret(text){
+    const p = parse(text);
+    const cat = p.category && S().cats.includes(p.category) ? p.category : (S().cats.includes('Atendimento') ? 'Atendimento' : S().cats[0]);
+    const dur = cat==='Visita' ? 90 : Number(S().duration);
+    const start = p.time || nextFree(p.date, dur);
+    return {...p, cat, dur, start, end: start ? fromMin(toMin(start)+dur) : null};
+  }
+  $('quick').addEventListener('input', () => {
+    const v = $('quick').value.trim(); const pv = $('preview');
+    if(v.length < 3){ pv.style.display='none'; return; }
+    const r = interpret(v);
+    pv.style.display='block';
+    pv.textContent = r.start ? `Vou criar: ${r.title} · ${fmtDay(r.date)} · ${r.start}–${r.end} · ${r.cat}` : `Não há horário livre em ${fmtDay(r.date)}. Diga um horário.`;
+  });
+  $('quickForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('quick').value.trim(); if(!v) return;
+    const r = interpret(v);
+    if(!r.start){ toast('Não há horário livre nesse dia. Diga um horário.'); return; }
+    const t = {id:uid(), title:r.title, date:r.date, start:r.start, end:r.end, cat:r.cat, fixed:r.cat==='Visita', subs:[], done:false};
+    const add = () => { state.tasks.push(t); save(); selected = t.date; $('quick').value=''; $('preview').style.display='none'; render(); toast('Tarefa criada: ' + t.title + ' às ' + t.start); };
+    if(overlaps(t.date, t.start, t.end)) ask('Horário ocupado', `Já existe tarefa nesse horário (${t.start}). Criar mesmo assim?`, add); else add();
+  });
+
+  // ---------- Formulário ----------
+  let editing = null;
+  function fillCats(sel, value){ sel.innerHTML = S().cats.map(c => `<option ${c===value?'selected':''}>${esc(c)}</option>`).join(''); if(value && !S().cats.includes(value)) sel.insertAdjacentHTML('beforeend', `<option selected>${esc(value)}</option>`); }
+  function openTask(t){
+    editing = t || null;
+    $('taskFormTitle').textContent = t ? 'Editar tarefa' : 'Nova tarefa';
+    $('fDelete').style.display = t ? '' : 'none';
+    const start = t ? t.start : (nextFree(selected, Number(S().duration)) || S().start);
+    $('fTitle').value = t ? t.title : '';
+    $('fDate').value = t ? t.date : selected;
+    $('fStart').value = start;
+    $('fEnd').value = t ? t.end : fromMin(toMin(start)+Number(S().duration));
+    fillCats($('fCat'), t ? t.cat : S().cats[0]);
+    $('fFixed').checked = t ? !!t.fixed : false;
+    $('fSubs').value = t && t.subs ? t.subs.map(s=>s.t).join('\n') : '';
+    $('taskModal').classList.add('open'); $('fTitle').focus();
+  }
+  $('addBtn').onclick = () => openTask(null);
+  $('fCancel').onclick = () => $('taskModal').classList.remove('open');
+  $('fDelete').onclick = () => ask('Excluir tarefa', 'Excluir "' + editing.title + '"?', () => { state.tasks = state.tasks.filter(x => x!==editing); save(); $('taskModal').classList.remove('open'); render(); });
+  $('taskForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const start = $('fStart').value, end = $('fEnd').value;
+    if(toMin(end) <= toMin(start)){ toast('O término precisa ser depois do início.'); return; }
+    const oldSubs = editing && editing.subs ? editing.subs : [];
+    const subs = $('fSubs').value.split('\n').map(s=>s.trim()).filter(Boolean).map(s => ({t:s, done: (oldSubs.find(o=>o.t===s)||{}).done || false}));
+    const data = {title:$('fTitle').value.trim(), date:$('fDate').value, start, end, cat:$('fCat').value, fixed:$('fFixed').checked, subs};
+    const commit = () => {
+      if(editing){ const changedTime = editing.start!==start || editing.date!==data.date; Object.assign(editing, data); if(changedTime){ editing.alerted=false; editing.lastRemind=0; editing.snoozeUntil=0; } }
+      else state.tasks.push({id:uid(), done:false, ...data});
+      save(); selected = data.date; $('taskModal').classList.remove('open'); render();
+    };
+    if(overlaps(data.date, start, end, editing && editing.id)) ask('Horário ocupado', 'Essa tarefa se sobrepõe a outra. Salvar mesmo assim?', commit); else commit();
+  });
+
+  // ---------- Confirmação e aviso rápido ----------
+  let onYes = null;
+  function ask(title, text, yes){ $('cTitle').textContent = title; $('cText').textContent = text; onYes = yes; $('confirmModal').classList.add('open'); }
+  $('cNo').onclick = () => $('confirmModal').classList.remove('open');
+  $('cYes').onclick = () => { $('confirmModal').classList.remove('open'); if(onYes) onYes(); };
+  let toastTimer;
+  function toast(msg){ const t = $('toast'); t.textContent = msg; t.style.display='block'; clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.style.display='none', 3200); }
+
+  // ---------- Sons (gerados pelo app, sem gravações) ----------
+  let ctx = null, customAudio = null;
+  function audioCtx(){ if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx = null; } } return ctx; }
+  function checkUnlock(){ const c = audioCtx(); $('unlock').style.display = (c && c.state==='suspended') ? 'block' : 'none'; }
+  function unlock(){ const c = audioCtx(); if(c && c.state==='suspended') c.resume().then(checkUnlock).catch(()=>{}); else checkUnlock(); }
+  document.addEventListener('click', unlock, true);
+  document.addEventListener('touchstart', unlock, {capture:true, passive:true});
+  function tone(c, freq, start, dur, type, vol){
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, c.currentTime+start);
+    g.gain.exponentialRampToValueAtTime(vol, c.currentTime+start+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+start+dur);
+    o.connect(g).connect(c.destination); o.start(c.currentTime+start); o.stop(c.currentTime+start+dur+0.05);
+  }
+  function playSound(short){
+    const v = Number(S().volume); if(!v) return;
+    if(S().sound==='custom' && S().customSound){
+      try{ customAudio = customAudio || new Audio(); customAudio.src = S().customSound; customAudio.volume = v; customAudio.currentTime = 0; customAudio.play().catch(()=>checkUnlock()); }catch(e){}
+      return;
+    }
+    const c = audioCtx(); if(!c) return; if(c.state==='suspended'){ checkUnlock(); return; }
+    const s = S().sound, a = v*0.6;
+    if(short){ tone(c, 1046, 0, 0.25, 'sine', a); tone(c, 1318, 0.12, 0.35, 'sine', a); return; }
+    if(s==='bipe'){ for(let i=0;i<3;i++){ tone(c, 880, i*0.5, 0.15, 'square', a*0.35); tone(c, 880, i*0.5+0.2, 0.15, 'square', a*0.35); } }
+    else if(s==='marimba'){ [523,659,784,1046,784,1046].forEach((f,i)=>tone(c, f, i*0.18, 0.5, 'triangle', a)); }
+    else if(s==='alerta'){ [440,554,659,880].forEach((f,i)=>tone(c, f, i*0.3, 0.45, 'sine', a)); [440,554,659,880].forEach((f,i)=>tone(c, f, 1.5+i*0.3, 0.45, 'sine', a)); }
+    else { [0,0.9,1.8].forEach(t => { tone(c, 880, t, 1.2, 'sine', a); tone(c, 1320, t, 0.9, 'sine', a*0.5); }); }
+  }
+
+  // ---------- Avisos ----------
+  let current = null;
+  function showAlert(t, kind){
+    current = t;
+    $('aBand').textContent = kind==='start' ? '⏰ COMEÇA AGORA' : (kind==='test' ? '⏰ TESTE DE AVISO' : '⏰ LEMBRETE · começou às ' + t.start + ' e ainda está pendente');
+    $('aTitle').textContent = t.title;
+    $('aTime').textContent = fmtDay(t.date) + ' · ' + t.start + ' – ' + t.end + ' · ' + t.cat;
+    $('alert').classList.add('open');
+    document.title = '⏰ ' + t.title;
+    playSound(false);
+  }
+  function closeAlert(){ $('alert').classList.remove('open'); document.title = 'Agenda do Corretor — versão de teste'; current = null; render(); }
+  $('aStart').onclick = () => { if(current && !current.test){ current.startedAt = Date.now(); current.lastRemind = Date.now(); save(); } closeAlert(); };
+  $('aDone').onclick = () => { if(current && !current.test){ setDone(current, true); } closeAlert(); };
+  $('aSnooze').onclick = () => { if(current && !current.test){ current.snoozeUntil = Date.now() + 10*60000; current.lastRemind = Date.now(); save(); toast('Volto a avisar em 10 minutos.'); } closeAlert(); };
+
+  function tick(){
+    if($('alert').classList.contains('open')) return;
+    const now = Date.now(), today = todayIso(), nm = nowMin();
+    const inWork = nm >= toMin(S().start) && nm < toMin(S().end);
+    const pending = state.tasks.filter(t => !t.done && !t.cancelled && t.date <= today);
+    // 1. adiamentos vencidos (a qualquer hora)
+    const snoozed = pending.find(t => t.snoozeUntil && t.snoozeUntil <= now);
+    if(snoozed){ snoozed.snoozeUntil = 0; save(); showAlert(snoozed, 'remind'); return; }
+    // 2. início exato
+    const starting = pending.find(t => t.date===today && !t.alerted && toMin(t.start) <= nm && nm < toMin(t.end));
+    if(starting){ starting.alerted = true; starting.lastRemind = now; save(); selected = today; showAlert(starting, 'start'); return; }
+    // 3. pendências que já começaram, repetindo no intervalo escolhido, só no expediente
+    const iv = Number(S().interval);
+    if(iv && inWork){
+      const due = pending.filter(t => (t.date < today || toMin(t.start) <= nm) && !(t.snoozeUntil > now) && (now - (t.lastRemind||0)) >= iv*60000);
+      if(due.length){
+        due.sort((a,b) => (b.startedAt?1:0)-(a.startedAt?1:0) || (b.date+b.start).localeCompare(a.date+a.start));
+        const t = due[0]; t.lastRemind = now; save(); selected = t.date; showAlert(t, 'remind');
+      }
+    }
+  }
+  setInterval(tick, 15000);
+  $('testBtn').onclick = () => {
+    const first = tasksOn(selected).find(t=>!t.done) || {title:'Exemplo: ligar para cliente', date:selected, start:'09:00', end:'10:00', cat:'Follow-up'};
+    toast('O aviso de teste aparece em 5 segundos.');
+    setTimeout(() => showAlert(Object.assign({}, first, {test:true}), 'test'), 5000);
+  };
+
+  // ---------- Configurações ----------
+  let draftCats = [];
+  function openSettings(first){
+    $('setTitle').textContent = first ? 'Vamos configurar sua agenda' : 'Configurações';
+    $('setIntro').textContent = first ? 'Leva 1 minuto. Você pode mudar tudo depois em Configurações.' : '';
+    $('sName').value = S().name; $('sStart').value = S().start; $('sEnd').value = S().end;
+    $('sInterval').value = String(S().interval); $('sDur').value = String(S().duration);
+    $('sVol').value = S().volume; draftCats = S().cats.slice(); drawCats();
+    $('sSound').innerHTML = Object.entries(SOUNDS).map(([k,v]) => `<option value="${k}" ${k===S().sound?'selected':''} ${k==='custom'&&!S().customSound?'disabled':''}>${v}${k==='custom'&&S().customName?' · '+esc(S().customName):''}</option>`).join('');
+    $('sFileInfo').textContent = S().customSound ? 'Som próprio carregado: ' + S().customName : 'Nenhum som próprio carregado.';
+    $('importBox').style.display = 'none';
+    $('setModal').classList.add('open');
+  }
+  function drawCats(){
+    $('sCats').innerHTML = '';
+    draftCats.forEach((c,i) => { const s = document.createElement('span'); s.innerHTML = esc(c) + ' <button type="button" aria-label="Remover ' + esc(c) + '">×</button>'; s.querySelector('button').onclick = () => { if(draftCats.length<=1){ toast('Mantenha pelo menos uma categoria.'); return; } draftCats.splice(i,1); drawCats(); }; $('sCats').appendChild(s); });
+  }
+  $('sAddCat').onclick = () => { const v = $('sNewCat').value.trim(); if(v && !draftCats.includes(v)){ draftCats.push(v); $('sNewCat').value=''; drawCats(); } };
+  $('sPlay').onclick = () => { const keep = {sound:S().sound, volume:S().volume}; S().sound = $('sSound').value; S().volume = Number($('sVol').value); playSound(false); Object.assign(S(), keep); };
+  $('sFile').addEventListener('change', (e) => {
+    const f = e.target.files[0]; if(!f) return;
+    if(f.size > 1024*1024){ toast('Arquivo grande demais. Use um som de até 1 MB.'); e.target.value=''; return; }
+    const r = new FileReader();
+    r.onload = () => { S().customSound = r.result; S().customName = f.name; S().sound = 'custom'; save(); openSettings(false); toast('Som carregado. Clique em Ouvir para testar.'); };
+    r.onerror = () => toast('Não consegui ler esse arquivo de áudio.');
+    r.readAsDataURL(f);
+  });
+  $('sCancel').onclick = () => { $('setModal').classList.remove('open'); if(!S().setupDone){ S().setupDone = true; save(); } };
+  $('setForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(toMin($('sEnd').value) <= toMin($('sStart').value)){ toast('O fim do expediente precisa ser depois do início.'); return; }
+    Object.assign(S(), {name:$('sName').value.trim(), start:$('sStart').value, end:$('sEnd').value, interval:Number($('sInterval').value), duration:Number($('sDur').value), cats:draftCats.slice(), sound:$('sSound').value, volume:Number($('sVol').value), setupDone:true});
+    save(); $('setModal').classList.remove('open'); render(); toast('Configurações salvas.');
+  });
+  $('settingsBtn').onclick = () => openSettings(false);
+  $('sExport').onclick = () => {
+    const txt = JSON.stringify(state);
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(()=>toast('Dados copiados. Cole num bloco de notas para guardar.')).catch(()=>showCopy(txt)); } else showCopy(txt);
+  };
+  function showCopy(txt){ $('importBox').style.display='block'; $('importText').value = txt; $('importText').select(); toast('Copie o texto da caixa e guarde num bloco de notas.'); }
+  $('sImportBtn').onclick = () => { $('importBox').style.display='block'; $('importText').value=''; $('importText').focus(); };
+  $('importDo').onclick = () => {
+    try{ const s = JSON.parse($('importText').value); if(!s || !Array.isArray(s.tasks) || !s.settings) throw 0;
+      ask('Restaurar dados', 'Isso substitui as tarefas e configurações deste aparelho. Continuar?', () => { state = s; state.settings = Object.assign(blank().settings, s.settings); save(); $('setModal').classList.remove('open'); render(); toast('Dados restaurados.'); });
+    }catch(e){ toast('Esse texto não é uma cópia válida da agenda.'); }
+  };
+
+  // ---------- Google Agenda e .ics ----------
+  const ymd = (d) => d.replace(/-/g,'');
+  const hm = (t) => t.replace(':','') + '00';
+  const ldt = (d,t) => ymd(d) + 'T' + hm(t);
+  function tzName(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone || ''; }catch(e){ return ''; } }
+  function gcalUrl(t){
+    const q = new URLSearchParams();
+    q.set('action','TEMPLATE'); q.set('text', t.title);
+    q.set('dates', ldt(t.date,t.start) + '/' + ldt(t.date,t.end));
+    const details = [t.cat ? 'Categoria: ' + t.cat : '', (t.subs||[]).map(s => '- ' + s.t).join('\n'), 'Criado na Agenda do Corretor'].filter(Boolean).join('\n');
+    q.set('details', details);
+    const tz = tzName(); if(tz) q.set('ctz', tz);
+    return 'https://calendar.google.com/calendar/render?' + q.toString();
+  }
+  const icsEsc = (s) => String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  function buildIcs(list){
+    const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+    const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Agenda do Corretor//PT-BR//','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+    list.forEach(t => {
+      const desc = [t.cat ? 'Categoria: ' + t.cat : '', (t.subs||[]).map(s => '- ' + s.t).join('\n')].filter(Boolean).join('\n');
+      L.push('BEGIN:VEVENT','UID:' + t.id + '@agenda-corretor','DTSTAMP:' + stamp,'DTSTART:' + ldt(t.date,t.start),'DTEND:' + ldt(t.date,t.end),'SUMMARY:' + icsEsc(t.title));
+      if(desc) L.push('DESCRIPTION:' + icsEsc(desc));
+      L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + icsEsc(t.title),'TRIGGER:-PT10M','END:VALARM','END:VEVENT');
+    });
+    L.push('END:VCALENDAR');
+    return L.join('\r\n') + '\r\n';
+  }
+  async function saveIcs(name, text){
+    // 1) recurso de download da página; 2) download comum (fora do Claude); 3) texto para copiar.
+    try{ if(window.claude && window.claude.use){ const d = await window.claude.use('downloads'); if(d){ await d.save({filename:name, data:text}); toast('Arquivo ' + name + ' pronto.'); return; } } }catch(e){}
+    try{ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text],{type:'text/calendar'})); a.download = name; document.body.appendChild(a); a.click(); a.remove(); toast('Arquivo ' + name + ' baixado.'); return; }catch(e){}
+    $('icsBox').style.display = 'block'; $('icsText').value = text;
+  }
+  function exportIcs(list, name){
+    if(!list.length){ toast('Não há tarefas para exportar.'); return; }
+    const text = buildIcs(list);
+    $('icsText').value = text;
+    saveIcs(name, text).then(() => {
+      // se nenhum método de arquivo funcionou, a caixa de texto já está visível
+    });
+  }
+  $('calBtn').onclick = () => { $('icsBox').style.display = 'none'; $('calModal').classList.add('open'); };
+  $('calClose').onclick = () => $('calModal').classList.remove('open');
+  $('icsDay').onclick = () => exportIcs(tasksOn(selected), 'agenda-' + selected + '.ics');
+  $('icsAll').onclick = () => exportIcs(state.tasks.filter(t => !t.done && !t.cancelled && t.date >= todayIso()).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)), 'agenda-pendentes.ics');
+  $('icsCopy').onclick = () => { $('icsText').select(); try{ navigator.clipboard.writeText($('icsText').value).then(()=>toast('Texto copiado.')).catch(()=>toast('Selecione o texto e copie.')); }catch(e){ toast('Selecione o texto e copie.'); } };
+
+  // ---------- Ajuda e feedback ----------
+  const FEEDBACK_WHATSAPP = '';   // número com DDI+DDD, ex.: 5511999999999. Vazio: a pessoa escolhe o contato.
+  function feedbackText(){
+    const g = (id) => ($(id).value || '').trim() || '—';
+    return 'Feedback — Agenda do Corretor (versão de teste)\n'
+      + 'Nota: ' + g('fbRating') + '\nGostei: ' + g('fbLike') + '\nAtrapalhou/faltou: ' + g('fbBad')
+      + '\nPagaria? ' + g('fbPay') + '\nAparelho: ' + g('fbDev');
+  }
+  function refreshFb(){ $('fbWa').href = 'https://wa.me/' + FEEDBACK_WHATSAPP + '?text=' + encodeURIComponent(feedbackText()); }
+  ['fbRating','fbLike','fbBad','fbPay','fbDev'].forEach(id => $(id).addEventListener('input', refreshFb));
+  $('fbRating').addEventListener('change', refreshFb);
+  $('helpBtn').onclick = () => {
+    if(!$('fbDev').value){ const ua = navigator.userAgent; $('fbDev').value = /iPhone|iPad/.test(ua) ? 'iPhone/iPad' : (/Android/.test(ua) ? 'Android' : (/Windows/.test(ua) ? 'Windows' : (/Mac/.test(ua) ? 'Mac' : ''))); }
+    refreshFb(); $('helpModal').classList.add('open');
+  };
+  $('helpClose').onclick = () => $('helpModal').classList.remove('open');
+  $('fbCopy').onclick = () => { try{ navigator.clipboard.writeText(feedbackText()).then(()=>toast('Texto copiado. Cole no WhatsApp ou e-mail.')).catch(()=>toast('Não consegui copiar. Use o botão do WhatsApp.')); }catch(e){ toast('Não consegui copiar. Use o botão do WhatsApp.'); } };
+
+  // ---------- Início ----------
+  render(); checkUnlock();
+  if(!S().setupDone) openSettings(true);
+  setTimeout(tick, 1500);
+  // Atualiza a tela na virada do dia
+  let lastDay = todayIso();
+  setInterval(() => { const d = todayIso(); if(d!==lastDay){ if(selected===lastDay) selected = d; lastDay = d; render(); } }, 60000);
+})();
+</script>
+</body>
+</html>
