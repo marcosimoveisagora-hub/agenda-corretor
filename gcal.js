@@ -21,10 +21,11 @@
     if (t.done || t.cancelled || !t.date || !t.start) return false;
     return new Date(t.date + 'T' + t.start + ':00').getTime() > Date.now() - 60000;
   }
-  function sigOf(t) { return [t.title, t.date, t.start, t.end || ''].join('|'); }
+  function subsOf(t) { return (t.subs || []).map(function (s) { return (s.done ? '[x] ' : '[ ] ') + s.t; }).join('\n'); }
+  function sigOf(t) { return [t.title, t.date, t.start, t.end || '', subsOf(t)].join('|'); }
   function body(t, id) {
     var end = (t.end && t.end > t.start) ? t.end : addMin(t.start, 30);
-    return { id: id, summary: t.title, description: 'Agenda do Corretor', start: { dateTime: t.date + 'T' + t.start + ':00', timeZone: TZ }, end: { dateTime: t.date + 'T' + end + ':00', timeZone: TZ },
+    return { id: id, summary: t.title, description: (subsOf(t) ? subsOf(t) + '\n\n' : '') + 'Agenda do Corretor', start: { dateTime: t.date + 'T' + t.start + ':00', timeZone: TZ }, end: { dateTime: t.date + 'T' + end + ':00', timeZone: TZ },
       reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 0 }] }, status: 'confirmed' };
   }
   function call(method, id, payload) {
