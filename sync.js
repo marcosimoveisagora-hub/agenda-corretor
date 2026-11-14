@@ -139,7 +139,7 @@
         var off = function () {}, dead = false;
         P.then(function (f) {
           if (dead) return;
-          off = f.fs.onSnapshot(f.fs.collection(f.db, 'users', u, 'items'), { includeMetadataChanges: false }, function (snap) {
+          off = f.fs.onSnapshot(f.fs.collection(f.db, 'users', u, 'items'), { includeMetadataChanges: true }, function (snap) {
             var docs = []; snap.docChanges().forEach(function (c) { var x = c.doc.data(); docs.push({ id: c.doc.id, k: x.k, u: x.u, del: !!x.del, d: x.d || '' }); });
             cb(docs, !snap.metadata.fromCache);
           }, errCb);
