@@ -17,8 +17,8 @@
    '#voiceStatus.listen{display:block;background:#FDECEA;color:#B3261E}'+
    '#voiceStatus.info{display:block;background:#E7F3F1;color:#0F4C46}'+
    '#voiceStatus.err{display:block;background:#FFF4E0;color:#8A5200}'+
-   '.voiceauto{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12.5px;color:#555}'+
-   '.voiceauto input{width:auto;margin:0}';
+   '.voiceauto{display:flex;align-items:center;gap:10px;margin-top:6px;padding:6px 0;font-size:13.5px;color:#555}'+
+   '.voiceauto input{width:24px;height:24px;margin:0;flex:none}';
   document.head.appendChild(css);
 
   var mic=document.createElement('button');
