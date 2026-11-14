@@ -25,7 +25,7 @@
   .brand{font-size:12px;letter-spacing:.08em;color:var(--mint);font-weight:700}
   .hello{font-size:22px;font-weight:700;margin:4px 0 12px}
   .daynav{display:flex;align-items:center;gap:8px}
-  .daynav button{background:rgba(255,255,255,.12);color:#fff;padding:8px 12px}
+  .daynav button{background:rgba(255,255,255,.12);color:#fff;padding:8px 12px;min-width:44px;min-height:44px}
   .daynav .day{flex:1;text-align:center;font-weight:600}
   .progress{margin-top:12px;height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden}
   .progress>div{height:100%;background:var(--gold);width:0;transition:width .3s}
@@ -40,15 +40,18 @@
   .task.done{opacity:.55}
   .task.done .title{text-decoration:line-through}
   .task .top{display:flex;gap:10px;align-items:flex-start}
-  .task input[type=checkbox]{width:22px;height:22px;margin-top:2px;accent-color:var(--teal2);flex:none}
+  .task input[type=checkbox]{width:30px;height:30px;margin:0;accent-color:var(--teal2);flex:none}
+  .task .top>div{min-width:0}
+  .task .title,.task .time,.subs span,#aTitle,#aTime{overflow-wrap:anywhere;word-break:break-word}
   .task .time{font-weight:700;color:var(--teal);font-size:14px}
   .task .title{font-weight:600}
   .chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--tint);color:var(--teal2);margin-left:6px;vertical-align:middle}
   .chip.fixed{background:#FDF3D8;color:#7A5A00}
-  .task .actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;padding-left:32px}
-  .subs{padding-left:32px;margin-top:6px}
-  .subs label{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:14px;margin:4px 0}
-  .subs input{width:18px;height:18px}
+  .task .actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;padding-left:40px}
+  .task .actions .ghost{min-height:44px;padding:8px 12px}
+  .subs{padding-left:40px;margin-top:6px}
+  .subs label{display:flex;gap:10px;align-items:center;color:var(--ink);font-size:14px;margin:2px 0;min-height:40px}
+  .subs input{width:24px;height:24px}
   .empty{text-align:center;color:var(--muted);padding:30px 10px}
   .bottom{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
   .bottom .wrap{display:flex;gap:8px;padding:0;flex-wrap:wrap}
@@ -75,7 +78,7 @@
   .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;display:none;z-index:60;max-width:90%}
   textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:10px;padding:10px;font:13px monospace}
   .sr{position:absolute;left:-9999px}
-  a.gcal{display:inline-block;color:var(--teal2);font-weight:600;font-size:14px;padding:6px 8px;text-decoration:none;border-radius:10px}
+  a.gcal{display:inline-flex;align-items:center;min-height:44px;color:var(--teal2);font-weight:600;font-size:14px;padding:6px 10px;text-decoration:none;border-radius:10px}
   a.gcal:hover{background:var(--tint)}
   .help h3{margin:16px 0 4px;color:var(--teal);font-size:16px}
   .help ol,.help ul{margin:4px 0 4px 18px;padding:0}
@@ -219,7 +222,7 @@
     </div>
     <div id="icsBox" style="display:none;margin-top:10px">
       <div class="hint">O download não abriu neste navegador. Copie o texto abaixo, cole num bloco de notas e salve como <b>agenda.ics</b>.</div>
-      <textarea id="icsText" readonly></textarea>
+      <textarea id="icsText" readonly aria-label="Texto do arquivo de calendário (.ics)"></textarea>
       <button type="button" id="icsCopy" style="margin-top:6px">Copiar texto</button>
     </div>
     <h3 style="margin:14px 0 4px;color:var(--teal);font-size:15px">Como importar o arquivo no Google Agenda</h3>
@@ -281,7 +284,7 @@
     ['dezenove', '19'], ['dezoito', '18'], ['dezessete', '17'], ['dezesseis', '16'], ['quinze', '15'],
     ['quatorze', '14'], ['catorze', '14'], ['treze', '13'], ['doze', '12'], ['onze', '11'], ['dez', '10'],
     ['nove', '9'], ['oito', '8'], ['sete', '7'], ['seis', '6'], ['cinco', '5'], ['quatro', '4'], ['tres', '3'],
-    ['duas', '2'], ['dois', '2'], ['uma', '1'], ['um', '1'], ['vinte', '20'], ['trinta', '30'], ['quarenta', '40'],
+    ['duas', '2'], ['dois', '2'], ['uma', '1'], ['um', '1'], ['vinte', '20'], ['trinta', '30'], ['quarenta', '40'], ['cinquenta', '50'],
   ];
   const WEEKDAYS = { domingo: 0, segunda: 1, terca: 2, quarta: 3, quinta: 4, sexta: 5, sabado: 6 };
   const pad = (n) => String(n).padStart(2, '0');
@@ -289,12 +292,12 @@
   const strip = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
   function guessCategory(t) {
-    if (/visita|decorado|showroom|stand/.test(t)) return 'Visita';
-    if (/ligar|liga para|follow|retorn|whats|mensagem|responder|cliente|lead/.test(t)) return 'Follow-up';
-    if (/document|contrato|banco|caixa|financiamento|simula/.test(t)) return 'Documentação';
-    if (/anunc|campanha|trafego|ads/.test(t)) return 'Anúncios';
-    if (/post|reels|video|conteudo|stories|gravar/.test(t)) return 'Conteúdo';
-    if (/estud|curso|ler|livro/.test(t)) return 'Estudo';
+    if (/\b(visita|visitas|visitar|decorado|showroom|stand)\b/.test(t)) return 'Visita';
+    if (/\b(ligar|ligue|ligacao|liga|follow|retorn\w*|whats\w*|mensagem|responder|cliente|clientes|lead|leads)\b/.test(t)) return 'Follow-up';
+    if (/\b(document\w*|contrato|banco|caixa|financiamento|simula\w*|proposta|assinatura|escritura|certidao|credito)\b/.test(t)) return 'Documentação';
+    if (/\b(anunc\w*|campanha|trafego|ads)\b/.test(t)) return 'Anúncios';
+    if (/\b(post|posts|postar|reels|video|videos|conteudo|stories|story|gravar)\b/.test(t)) return 'Conteúdo';
+    if (/\b(estud\w*|curso|ler|livro)\b/.test(t)) return 'Estudo';
     return null;
   }
 
@@ -303,54 +306,103 @@
     const original = String(text || '').trim();
     // Trabalha numa versão sem acentos e em minúsculas; guarda as posições para limpar o título.
     let s = ' ' + strip(original.toLowerCase()).replace(/[,.;!?]/g, ' ') + ' ';
-    s = s.replace(/meio[\s-]dia/g, ' 12h00 ');
-    for (const [w, n] of NUM_WORDS) s = s.replace(new RegExp('(^|\\s)' + w + '(?=\\s)', 'g'), '$1' + n);
+    s = s.replace(/meio[\s-]dia/g, ' 12h00 ').replace(/meia[\s-]noite/g, ' 0h00 ');
+    const U = { um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9 };
+    const DZ = { vinte: 20, trinta: 30, quarenta: 40, cinquenta: 50 };
+    s = s.replace(/(^|\s)(vinte|trinta|quarenta|cinquenta)\se\s(um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove)(?=\s)/g, (m, a, b, c) => a + (DZ[b] + U[c]));
+    const numRestore = [];
+    for (const [w, n] of NUM_WORDS) s = s.replace(new RegExp('(^|\\s)' + w + '(?=\\s)', 'g'), (m, a) => { numRestore.push([n, w]); return a + n; });
     s = s.replace(/\s+/g, ' ');
 
     let date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let dateFound = false;
+    let dateFound = false, dateInvalid = null;
+    let hh = null, mm = 0, endH = null, endM = 0, rel = false, rangeFound = false;
     const take = (re, fn) => { const m = s.match(re); if (m) { fn(m); s = s.replace(m[0], ' '); return true; } return false; };
 
+    // Tempo relativo: "daqui a 2 horas", "em 30 minutos", "daqui a meia hora"
+    const relMin = (mins) => { const t = new Date(now.getTime() + mins * 60000); date = new Date(t.getFullYear(), t.getMonth(), t.getDate()); hh = t.getHours(); mm = t.getMinutes(); dateFound = true; rel = true; };
+    take(/\s(?:daqui a|daqui|dentro de|em)\s(\d{1,3})\s(hora|horas|h|minuto|minutos|min)(\se\smeia)?(?=\s)/, (m) => relMin(+m[1] * (m[2][0] === 'h' ? 60 : 1) + (m[3] ? 30 : 0))) ||
+    take(/\s(?:daqui a|daqui|dentro de|em)\smeia\shora(?=\s)/, () => relMin(30));
+
     // Datas
-    take(/\s(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?(?=\s)/, (m) => {
-      let y = m[3] ? +m[3] : now.getFullYear(); if (y < 100) y += 2000;
-      let d = new Date(y, +m[2] - 1, +m[1]);
-      if (!m[3] && d < date) d = new Date(y + 1, +m[2] - 1, +m[1]);
-      date = d; dateFound = true;
-    }) ||
-    take(/\s(?:no\s)?dia\s(\d{1,2})(?=\s)/, (m) => {
-      let d = new Date(now.getFullYear(), now.getMonth(), +m[1]);
-      if (d < date) d = new Date(now.getFullYear(), now.getMonth() + 1, +m[1]);
-      date = d; dateFound = true;
-    }) ||
-    take(/\sdepois de amanha(?=\s)/, () => { date.setDate(date.getDate() + 2); dateFound = true; }) ||
-    take(/\samanha(?=\s)/, () => { date.setDate(date.getDate() + 1); dateFound = true; }) ||
-    take(/\shoje(?=\s)/, () => { dateFound = true; }) ||
-    take(/\s(?:na\s|no\s|proxima\s|proximo\s)?(domingo|segunda|terca|quarta|quinta|sexta|sabado)(?:[\s-]feira)?(?=\s)/, (m) => {
-      let ahead = (WEEKDAYS[m[1]] - date.getDay() + 7) % 7; if (ahead === 0) ahead = 7;
-      date.setDate(date.getDate() + ahead); dateFound = true;
-    });
+    if (!rel) {
+      const validDate = (y, mo, d) => mo >= 1 && mo <= 12 && d >= 1 && new Date(y, mo - 1, d).getMonth() === mo - 1;
+      take(/\s(\d{1,2})[\/-](\d{1,2})(?:[\/-](\d{2,4}))?(?=\s)/, (m) => {
+        const d = +m[1], mo = +m[2]; let y = m[3] ? +m[3] : null; if (y !== null && y < 100) y += 2000;
+        if (y !== null) { if (validDate(y, mo, d)) { date = new Date(y, mo - 1, d); dateFound = true; } else dateInvalid = m[1] + '/' + m[2]; return; }
+        let found = null;
+        for (let yy = date.getFullYear(); yy <= date.getFullYear() + 8 && !found; yy++) { if (validDate(yy, mo, d)) { const c = new Date(yy, mo - 1, d); if (c >= date) found = c; } }
+        if (found) { date = found; dateFound = true; } else dateInvalid = m[1] + '/' + m[2];
+      }) ||
+      take(/\s(?:no\s)?dia\s(\d{1,2})(?=\s)/, (m) => {
+        const d = +m[1]; let found = null;
+        if (d >= 1 && d <= 31) {
+          for (let k = 0; k < 14 && !found; k++) {
+            const base = new Date(date.getFullYear(), date.getMonth() + k, 1);
+            const dim = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+            if (d <= dim) { const c = new Date(base.getFullYear(), base.getMonth(), d); if (c >= date) found = c; }
+          }
+        }
+        if (found) { date = found; dateFound = true; } else dateInvalid = 'dia ' + m[1];
+      }) ||
+      take(/\s(?:daqui a|dentro de|em)\s(\d{1,3})\s(dia|dias|semana|semanas)(?=\s)/, (m) => { date.setDate(date.getDate() + (+m[1]) * (m[2][0] === 's' ? 7 : 1)); dateFound = true; }) ||
+      take(/\s(?:semana que vem|proxima semana)(?=\s)/, () => { date.setDate(date.getDate() + 7); dateFound = true; }) ||
+      take(/\sdepois de amanha(?=\s)/, () => { date.setDate(date.getDate() + 2); dateFound = true; }) ||
+      take(/\samanha(?=\s)/, () => { date.setDate(date.getDate() + 1); dateFound = true; }) ||
+      take(/\shoje(?=\s)/, () => { dateFound = true; }) ||
+      take(/\s(?:na\s|no\s|proxima\s|proximo\s)?(domingo|segunda|terca|quarta|quinta|sexta|sabado)(?:[\s-]feira)?(?=\s)/, (m) => {
+        let ahead = (WEEKDAYS[m[1]] - date.getDay() + 7) % 7; if (ahead === 0) ahead = 7;
+        date.setDate(date.getDate() + ahead); dateFound = true;
+      });
+    }
 
     // Horários
-    let hh = null, mm = 0;
-    take(/\s(?:as\s|a\s|para as\s)?(\d{1,2})\s?(?:h|:)\s?(\d{2})?(?:\s?min)?(?:\shoras?)?(?=\s)/, (m) => { hh = +m[1]; mm = m[2] ? +m[2] : 0; }) ||
-    take(/\s(?:as\s|a\s)?(\d{1,2})\se\smeia(?=\s)/, (m) => { hh = +m[1]; mm = 30; }) ||
-    take(/\s(?:as\s|a\s)?(\d{1,2})\se\s(\d{1,2})(?=\s)/, (m) => { hh = +m[1]; mm = +m[2]; }) ||
-    take(/\sas\s(\d{1,2})(?:\shoras?)?(?=\s)/, (m) => { hh = +m[1]; }) ||
-    take(/\s(\d{1,2})\shoras?(?=\s)/, (m) => { hh = +m[1]; });
+    if (hh === null) {
+      // faixa: "das 10 às 11", "14h às 15h"
+      const rm = s.match(/\s(?:(?:das|de)\s)?(\d{1,2})(?::(\d{2})|h\s?(\d{2})?)?\s(?:as|a|ate)\s(\d{1,2})(?::(\d{2})|h\s?(\d{2})?)?(?:\shoras?)?(?=\s)/);
+      // sem "das/de" nem "h" no primeiro número ("cliente 2 às 15h"), não é faixa
+      if (rm && (/^\s(?:das|de)\s/.test(rm[0]) || /^\s\d{1,2}(?::|h)/.test(rm[0]))) {
+        const pm = /\s(da|de) (tarde|noite)\s/.test(s);
+        let h1 = +rm[1], m1 = +(rm[2] || rm[3] || 0), h2 = +rm[4], m2 = +(rm[5] || rm[6] || 0);
+        if (pm) { if (h2 < 12) h2 += 12; if (h1 < 12 && h1 + 12 < h2) h1 += 12; }
+        if (h1 <= 23 && h2 <= 24 && m1 < 60 && m2 < 60 && h2 * 60 + m2 > h1 * 60 + m1) {
+          hh = h1; mm = m1; endH = h2 > 23 ? 23 : h2; endM = h2 > 23 ? 59 : m2; rangeFound = true;
+          s = s.replace(rm[0], ' ');
+        }
+      }
+    }
+    if (hh === null) {
+      take(/\s(?:as\s|a\s|para as\s)?(\d{1,2})\s?(?:h|:)\s?(\d{2})?(?:\s?min)?(?:\shoras?)?(?=\s)/, (m) => { hh = +m[1]; mm = m[2] ? +m[2] : 0; }) ||
+      take(/\s(?:as\s|a\s)?(\d{1,2})\se\smeia(?=\s)/, (m) => { hh = +m[1]; mm = 30; }) ||
+      take(/\s(?:as\s|a\s)?(\d{1,2})\se\s(\d{1,2})(?=\s)/, (m) => { hh = +m[1]; mm = +m[2]; }) ||
+      take(/\sas\s(\d{1,2})(?:\shoras?)?(?=\s)/, (m) => { hh = +m[1]; }) ||
+      take(/\s(\d{1,2})\shoras?(?=\s)/, (m) => { hh = +m[1]; }) ||
+      take(/\s(\d{1,2})(?=\s(?:da|de)\s(?:manha|tarde|noite)\s)/, (m) => { hh = +m[1]; });
+    }
     if (hh !== null) {
-      if (/\s(da|de) (tarde|noite)\s/.test(s) && hh < 12) hh += 12;
+      if (!rangeFound && !rel && /\s(da|de) (tarde|noite)\s/.test(s) && hh < 12) hh += 12;
       s = s.replace(/\s(da|de) (manha|tarde|noite)\s/, ' ');
-      if (hh > 23 || mm > 59) hh = null;
+      if (hh > 23 || mm > 59) { hh = null; endH = null; }
+    } else {
+      // "sábado de manhã", "hoje à tarde": sem hora marcada, sugere um horário típico
+      const pw = s.match(/\s(?:de|da|na|pela|a)\s(manha|tarde|noite)\s/);
+      if (pw) { hh = { manha: 9, tarde: 14, noite: 19 }[pw[1]]; mm = 0; s = s.replace(pw[0], ' '); }
     }
 
     // Título: remove palavras de comando e sobras
-    let title = s.replace(/^\s*(adicionar|adiciona|agendar|agenda|marcar|marca|criar|cria|lembrar de|me lembra de|lembrete|nova tarefa|tarefa)\s/, ' ')
-      .replace(/\s(as|a|ao|para as|pra|no|na|em)\s*$/, ' ')
-      .replace(/\s+/g, ' ').trim();
-    // Recupera acentos do texto original quando a palavra existe nele
+    let title = s;
+    for (let i = 0; i < 4; i++) {
+      const t2 = title.replace(/^\s*(adicionar|adiciona|agendar|agenda|marcar|marca|criar|cria|lembrar de|me lembra de|lembra de|lembrete:?|nova tarefa|tarefa|anotar|anota)\s/, ' ');
+      if (t2 === title) break; title = t2;
+    }
+    title = title.replace(/\s(as|a|ao|para as|pra|no|na|em|de|do|da|das)\s*$/, ' ').replace(/\s+/g, ' ').trim();
+    // Recupera acentos do texto original quando a palavra existe nele (e devolve "um/uma/dois" que viraram número)
     const words = original.split(/\s+/);
-    title = title.split(' ').map((w) => words.find((o) => strip(o.toLowerCase()).replace(/[,.;!?]/g, '') === w) || w).join(' ');
+    const origDigits = new Set(original.match(/\d+/g) || []);
+    title = title.split(' ').map((w) => {
+      if (/^\d{1,2}$/.test(w) && !origDigits.has(w)) { const k = numRestore.findIndex((x) => x[0] === w); if (k >= 0) { w = numRestore[k][1]; numRestore.splice(k, 1); } }
+      return words.find((o) => strip(o.toLowerCase()).replace(/[,.;!?]/g, '') === w) || w;
+    }).join(' ');
     title = title.replace(/[,.;!?]+$/, '');
     if (title) title = title.charAt(0).toUpperCase() + title.slice(1);
 
@@ -359,7 +411,9 @@
       title: title || 'Nova tarefa',
       date: iso(date),
       dateFound,
+      dateInvalid,
       time: hh === null ? null : pad(hh) + ':' + pad(mm),
+      endTime: (hh !== null && endH !== null) ? pad(endH) + ':' + pad(endM) : null,
       category,
     };
   }
@@ -380,8 +434,50 @@
   // ---------- Dados ----------
   let state = load();
   function blank(){ return {settings:{name:'',start:'08:00',end:'20:00',interval:10,duration:60,cats:DEFAULT_CATS.slice(),sound:'sino',customSound:null,customName:'',volume:0.8,setupDone:false},tasks:[]}; }
+  // Limpa e conserta dados guardados ou importados; nunca deixa uma tarefa incompleta derrubar a agenda.
+  function normalize(s){
+    const b = blank();
+    if(!s || typeof s !== 'object') { b._dropped = 0; return b; }
+    const st = Object.assign(b.settings, (s.settings && typeof s.settings === 'object') ? s.settings : {});
+    const okT = /^([01]\d|2[0-3]):[0-5]\d$/, okD = /^\d{4}-\d{2}-\d{2}$/;
+    if(!Array.isArray(st.cats) || !st.cats.length) st.cats = DEFAULT_CATS.slice();
+    st.cats = st.cats.map(String);
+    if(!okT.test(String(st.start))) st.start = '08:00';
+    if(!okT.test(String(st.end)) || st.end <= st.start) st.end = st.start < '20:00' ? '20:00' : '23:59';
+    st.interval = Number(st.interval); if(!isFinite(st.interval) || st.interval < 0) st.interval = 10;
+    st.duration = Number(st.duration); if(!isFinite(st.duration) || st.duration <= 0) st.duration = 60;
+    st.volume = Number(st.volume); if(!isFinite(st.volume)) st.volume = 0.8; st.volume = Math.max(0, Math.min(1, st.volume));
+    const mins = (t) => { const a = t.split(':'); return +a[0]*60 + +a[1]; };
+    const hm = (m) => { m = Math.max(0, Math.min(23*60+59, m)); return pad(Math.floor(m/60)) + ':' + pad(m%60); };
+    let dropped = 0; const tasks = [];
+    (Array.isArray(s.tasks) ? s.tasks : []).forEach(t => {
+      if(!t || typeof t !== 'object' || !okD.test(String(t.date)) || !okT.test(String(t.start))) { dropped += 1; return; }
+      const x = Object.assign({}, t);
+      x.id = x.id ? String(x.id) : Math.random().toString(36).slice(2,10);
+      x.title = String(x.title == null ? '' : x.title).trim() || 'Tarefa';
+      if(!okT.test(String(x.end)) || x.end <= x.start){
+        x.end = hm(mins(x.start) + st.duration);
+        if(x.end <= x.start){ x.start = '23:00'; x.end = '23:59'; }
+      }
+      x.cat = (typeof x.cat === 'string' && x.cat) ? x.cat : st.cats[0];
+      x.subs = Array.isArray(x.subs) ? x.subs.filter(o => o && typeof o === 'object').map(o => ({t: String(o.t == null ? '' : o.t), done: !!o.done})).filter(o => o.t) : [];
+      x.done = !!x.done; x.fixed = !!x.fixed; x.cancelled = !!x.cancelled;
+      ['snoozeUntil','lastRemind'].forEach(k => { x[k] = Number(x[k]); if(!isFinite(x[k])) x[k] = 0; });
+      if(x.startedAt != null){ x.startedAt = Number(x.startedAt); if(!isFinite(x.startedAt)) x.startedAt = null; }
+      tasks.push(x);
+    });
+    return {settings: st, tasks, _dropped: dropped};
+  }
   function load(){
-    try{ const raw = localStorage.getItem(KEY); if(raw){ const s = JSON.parse(raw); const b = blank(); s.settings = Object.assign(b.settings, s.settings||{}); s.tasks = s.tasks||[]; return s; } }catch(e){}
+    let raw = null;
+    try{
+      raw = localStorage.getItem(KEY);
+      if(raw){
+        const s = normalize(JSON.parse(raw));
+        if(s._dropped){ try{ localStorage.setItem(KEY + '-recuperacao', raw); }catch(e){} }
+        delete s._dropped; return s;
+      }
+    }catch(e){ if(raw){ try{ localStorage.setItem(KEY + '-recuperacao', raw); }catch(e2){} } }
     return blank();
   }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast('Não consegui salvar neste navegador. Use "Copiar meus dados" para não perder nada.'); } }
@@ -451,7 +547,8 @@
   function interpret(text){
     const p = parse(text);
     const cat = p.category && S().cats.includes(p.category) ? p.category : (S().cats.includes('Atendimento') ? 'Atendimento' : S().cats[0]);
-    const dur = cat==='Visita' ? 90 : Number(S().duration);
+    let dur = cat==='Visita' ? 90 : Number(S().duration);
+    if(p.time && p.endTime){ const d = toMin(p.endTime) - toMin(p.time); if(d > 0) dur = d; }
     const start = p.time || nextFree(p.date, dur);
     return {...p, cat, dur, start, end: start ? fromMin(toMin(start)+dur) : null};
   }
@@ -460,13 +557,15 @@
     if(v.length < 3){ pv.style.display='none'; return; }
     const r = interpret(v);
     pv.style.display='block';
-    pv.textContent = r.start ? `Vou criar: ${r.title} · ${fmtDay(r.date)} · ${r.start}–${r.end} · ${r.cat}` : `Não há horário livre em ${fmtDay(r.date)}. Diga um horário.`;
+    pv.textContent = r.dateInvalid ? `Essa data não existe (${r.dateInvalid}). Confira e tente de novo.` : r.start ? `Vou criar: ${r.title} · ${fmtDay(r.date)} · ${r.start}–${r.end} · ${r.cat}` : `Não há horário livre em ${fmtDay(r.date)}. Diga um horário.`;
   });
   $('quickForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('quick').value.trim(); if(!v) return;
     const r = interpret(v);
+    if(r.dateInvalid){ toast('Essa data não existe (' + r.dateInvalid + '). Confira e tente de novo.'); return; }
     if(!r.start){ toast('Não há horário livre nesse dia. Diga um horário.'); return; }
+    if(toMin(r.end) <= toMin(r.start)){ toast('Essa hora não cabe no dia. Diga um horário mais cedo.'); return; }
     const t = {id:uid(), title:r.title, date:r.date, start:r.start, end:r.end, cat:r.cat, fixed:r.cat==='Visita', subs:[], done:false};
     const add = () => { state.tasks.push(t); save(); selected = t.date; $('quick').value=''; $('preview').style.display='none'; render(); toast('Tarefa criada: ' + t.title + ' às ' + t.start); };
     if(overlaps(t.date, t.start, t.end)) ask('Horário ocupado', `Já existe tarefa nesse horário (${t.start}). Criar mesmo assim?`, add); else add();
@@ -495,7 +594,7 @@
   $('taskForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const start = $('fStart').value, end = $('fEnd').value;
-    if(toMin(end) <= toMin(start)){ toast('O término precisa ser depois do início.'); return; }
+    if(toMin(end) <= toMin(start)){ toast(toMin(end) < toMin(start) && toMin(end) < 6*60 ? 'Uma tarefa não pode passar da meia-noite. Termine até 23:59 ou crie outra no dia seguinte.' : 'O término precisa ser depois do início.'); return; }
     const oldSubs = editing && editing.subs ? editing.subs : [];
     const subs = $('fSubs').value.split('\n').map(s=>s.trim()).filter(Boolean).map(s => ({t:s, done: (oldSubs.find(o=>o.t===s)||{}).done || false}));
     const data = {title:$('fTitle').value.trim(), date:$('fDate').value, start, end, cat:$('fCat').value, fixed:$('fFixed').checked, subs};
@@ -554,6 +653,7 @@
     $('aTime').textContent = fmtDay(t.date) + ' · ' + t.start + ' – ' + t.end + ' · ' + t.cat;
     $('alert').classList.add('open');
     document.title = '⏰ ' + t.title;
+    try{ if(navigator.vibrate) navigator.vibrate([350,150,350,150,350]); }catch(e){}
     playSound(false);
   }
   function closeAlert(){ $('alert').classList.remove('open'); document.title = 'Agenda do Corretor — versão de teste'; current = null; render(); }
@@ -633,7 +733,7 @@
   $('sImportBtn').onclick = () => { $('importBox').style.display='block'; $('importText').value=''; $('importText').focus(); };
   $('importDo').onclick = () => {
     try{ const s = JSON.parse($('importText').value); if(!s || !Array.isArray(s.tasks) || !s.settings) throw 0;
-      ask('Restaurar dados', 'Isso substitui as tarefas e configurações deste aparelho. Continuar?', () => { state = s; state.settings = Object.assign(blank().settings, s.settings); save(); $('setModal').classList.remove('open'); render(); toast('Dados restaurados.'); });
+      ask('Restaurar dados', 'Isso substitui as tarefas e configurações deste aparelho. Continuar?', () => { const n = normalize(s), dropped = n._dropped; delete n._dropped; state = n; save(); $('setModal').classList.remove('open'); render(); toast('Dados restaurados.' + (dropped ? ' ' + dropped + ' tarefa(s) incompleta(s) foram ignoradas.' : '')); });
     }catch(e){ toast('Esse texto não é uma cópia válida da agenda.'); }
   };
 
@@ -652,17 +752,27 @@
     return 'https://calendar.google.com/calendar/render?' + q.toString();
   }
   const icsEsc = (s) => String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  // Horário local do usuário convertido para UTC: o evento cai na hora certa em qualquer calendário.
+  const utc = (d,t) => { const [y,m,dd] = d.split('-').map(Number), [h,mi] = t.split(':').map(Number); return new Date(y,m-1,dd,h,mi,0).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''); };
+  // Quebra linhas em 75 bytes, como manda o padrão do arquivo de calendário (RFC 5545).
+  function fold(line){
+    const enc = new TextEncoder();
+    if(enc.encode(line).length <= 75) return line;
+    const out = []; let cur = '', bytes = 0;
+    for(const ch of line){ const n = enc.encode(ch).length; if(bytes + n > 75){ out.push(cur); cur = ' ' + ch; bytes = 1 + n; } else { cur += ch; bytes += n; } }
+    out.push(cur); return out.join('\r\n');
+  }
   function buildIcs(list){
     const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
     const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Agenda do Corretor//PT-BR//','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
     list.forEach(t => {
       const desc = [t.cat ? 'Categoria: ' + t.cat : '', (t.subs||[]).map(s => '- ' + s.t).join('\n')].filter(Boolean).join('\n');
-      L.push('BEGIN:VEVENT','UID:' + t.id + '@agenda-corretor','DTSTAMP:' + stamp,'DTSTART:' + ldt(t.date,t.start),'DTEND:' + ldt(t.date,t.end),'SUMMARY:' + icsEsc(t.title));
+      L.push('BEGIN:VEVENT','UID:' + t.id + '@agenda-corretor','DTSTAMP:' + stamp,'DTSTART:' + utc(t.date,t.start),'DTEND:' + utc(t.date,t.end),'SUMMARY:' + icsEsc(t.title));
       if(desc) L.push('DESCRIPTION:' + icsEsc(desc));
       L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + icsEsc(t.title),'TRIGGER:-PT10M','END:VALARM','END:VEVENT');
     });
     L.push('END:VCALENDAR');
-    return L.join('\r\n') + '\r\n';
+    return L.map(fold).join('\r\n') + '\r\n';
   }
   async function saveIcs(name, text){
     // 1) recurso de download da página; 2) download comum (fora do Claude); 3) texto para copiar.
@@ -683,6 +793,25 @@
   $('icsDay').onclick = () => exportIcs(tasksOn(selected), 'agenda-' + selected + '.ics');
   $('icsAll').onclick = () => exportIcs(state.tasks.filter(t => !t.done && !t.cancelled && t.date >= todayIso()).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)), 'agenda-pendentes.ics');
   $('icsCopy').onclick = () => { $('icsText').select(); try{ navigator.clipboard.writeText($('icsText').value).then(()=>toast('Texto copiado.')).catch(()=>toast('Selecione o texto e copie.')); }catch(e){ toast('Selecione o texto e copie.'); } };
+
+  // ---------- Várias abas, teclado e acessibilidade ----------
+  // Se a agenda estiver aberta em outra aba, adota o que ela salvou (evita apagar tarefas).
+  window.addEventListener('storage', (e) => {
+    if(e.key !== KEY || !e.newValue) return;
+    try{
+      const n = normalize(JSON.parse(e.newValue)); delete n._dropped; state = n;
+      if(editing) editing = state.tasks.find(x => x.id === editing.id) || null;
+      if(current && !current.test){ const c = state.tasks.find(x => x.id === current.id); if(c) current = c; }
+      render();
+    }catch(err){}
+  });
+  [['taskModal','Tarefa'],['setModal','Configurações'],['confirmModal','Confirmação'],['calModal','Google Agenda'],['helpModal','Ajuda e feedback']].forEach(([id,label]) => { const m = $(id); m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true'); m.setAttribute('aria-label',label); });
+  document.addEventListener('keydown', (e) => {
+    if(e.key !== 'Escape' || $('alert').classList.contains('open')) return;
+    for(const [id, btn] of [['confirmModal','cNo'],['taskModal','fCancel'],['setModal','sCancel'],['calModal','calClose'],['helpModal','helpClose']]){
+      if($(id).classList.contains('open')){ $(btn).click(); return; }
+    }
+  });
 
   // ---------- Ajuda e feedback ----------
   const FEEDBACK_WHATSAPP = '';   // número com DDI+DDD, ex.: 5511999999999. Vazio: a pessoa escolhe o contato.
