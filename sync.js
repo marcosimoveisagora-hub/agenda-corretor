@@ -123,13 +123,25 @@
       return { auth: auth, au: m[1], fs: fs, db: db };
     });
     return {
-      onAuth: function (cb) { P.then(function (f) { f.au.getRedirectResult(f.auth).catch(function () {}); f.au.onAuthStateChanged(f.auth, cb); }).catch(function (e) { setStatus('erro', e); }); },
+      onAuth: function (cb) { P.then(function (f) { f.au.getRedirectResult(f.auth).then(function (r) { try { var cr = r && f.au.GoogleAuthProvider.credentialFromResult(r); if (cr && cr.accessToken && window.AgendaGcal) window.AgendaGcal.setToken(cr.accessToken); } catch (e) {} }).catch(function () {}); f.au.onAuthStateChanged(f.auth, cb); }).catch(function (e) { setStatus('erro', e); }); },
       signIn: function () {
         return P.then(function (f) {
           var prov = new f.au.GoogleAuthProvider();
           return f.au.signInWithPopup(f.auth, prov).catch(function (e) {
             var c = e && e.code;
             if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment' || c === 'auth/web-storage-unsupported') { return f.au.signInWithRedirect(f.auth, prov); }
+            throw e;
+          });
+        });
+      },
+      gcalAuth: function () {
+        return P.then(function (f) {
+          var prov = new f.au.GoogleAuthProvider();
+          prov.addScope('https://www.googleapis.com/auth/calendar.events');
+          var tok = function (r) { var cr = f.au.GoogleAuthProvider.credentialFromResult(r); return cr && cr.accessToken; };
+          return f.au.signInWithPopup(f.auth, prov).then(tok).catch(function (e) {
+            var c = e && e.code;
+            if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment' || c === 'auth/web-storage-unsupported') { return f.au.signInWithRedirect(f.auth, prov).then(function () { return null; }); }
             throw e;
           });
         });
@@ -178,6 +190,6 @@
     window.addEventListener('online', function () { if (uid) schedule(); });
   }
 
-  window.AgendaSync = { changed: schedule, _taskSig: taskSig, _meta: function () { return meta; } };
+  window.AgendaSync = { changed: schedule, gcalAuth: function () { ensureBackend(); return B.gcalAuth(); }, _taskSig: taskSig, _meta: function () { return meta; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
