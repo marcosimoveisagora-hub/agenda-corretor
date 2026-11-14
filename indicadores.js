@@ -34,6 +34,8 @@
   var anchor = document.querySelector('.proto');
   if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(box, anchor); else document.body.insertBefore(box, document.body.firstChild);
 
+  var failed = false;
+  var NOLOAD = function () { return failed ? 'indisponível agora' : 'buscando…'; };
   function chip(label, value, detail, cls, tip) {
     return '<div class="chip2" title="' + (tip || '') + '"><div class="l">' + label + '</div><div class="v">' + value +
       '</div><div class="d ' + (cls || '') + '">' + (detail || '') + '</div></div>';
@@ -44,7 +46,7 @@
     if (q.usd) {
       var u = q.usd, up = u.pct >= 0;
       h += chip('Dólar', 'R$ ' + nf(u.value, 2), (u.pct == null ? '' : (up ? '+' : '') + nf(u.pct, 2) + '% · ') + u.time, up ? 'up' : 'dn', 'Dólar comercial (USD/BRL).');
-    } else h += chip('Dólar', '—', 'buscando…');
+    } else h += chip('Dólar', '—', NOLOAD());
     if (q.ibov) {
       var b = q.ibov, ub = b.pct >= 0;
       h += chip('IBOVESPA', nf(b.value, 0) + ' pts', (b.pct == null ? '' : (ub ? '+' : '') + nf(b.pct, 2) + '% · ') + b.time, ub ? 'up' : 'dn', 'Índice da bolsa brasileira (B3). Pode ter atraso.');
@@ -52,7 +54,7 @@
     var v = data.values || {};
     SERIES.forEach(function (s) {
       var it = v[s.key];
-      if (!it) { h += chip(s.label, '—', 'buscando…', '', s.hint); return; }
+      if (!it) { h += chip(s.label, '—', NOLOAD(), '', s.hint); return; }
       if (s.kind === 'rate') h += chip(s.label, nf(it.value, 2) + '% a.a.', 'desde ' + it.since, '', s.hint);
       else if (s.kind === 'm12') h += chip(s.label, nf(it.value, 2) + '%', it.month + (it.acc12 == null ? '' : ' · 12m ' + nf(it.acc12, 1) + '%'), '', s.hint);
       else h += chip(s.label, nf(it.value, 2) + '%', it.month, '', s.hint);
@@ -106,7 +108,7 @@
       save(); render();
     });
   }
-  var quiet = function () {};
+  var quiet = function () { failed = true; render(); };
   function refreshSeries() {
     var v = data.values || {}, day = new Date().toISOString().slice(0, 10);
     SERIES.forEach(function (s) { if (!v[s.key] || v[s.key].on !== day) loadSeries(s).catch(quiet); });
@@ -116,5 +118,6 @@
   render(); refreshSeries(); refreshQuotes();
   setInterval(function () { if (!document.hidden) refreshQuotes(); }, 5 * 60000);
   setInterval(refreshSeries, 30 * 60000);
+  window.addEventListener('online', function () { failed = false; render(); refreshQuotes(); refreshSeries(); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { refreshQuotes(); refreshSeries(); } });
 })();
