@@ -115,7 +115,7 @@
 </header>
 
 <main class="wrap">
-  <div class="proto"><b>Versão de teste.</b> Suas tarefas ficam salvas só neste navegador e neste aparelho. Os avisos tocam com a página aberta. Toque em <b>Ajuda</b> para instruções e para mandar seu feedback.</div>
+  <div class="proto"><b>Versão de teste.</b> Suas tarefas ficam salvas neste aparelho. Toque em <b>☁ Entrar para sincronizar</b> para ver a mesma agenda no celular e no computador. Os avisos tocam com a página aberta. Toque em <b>Ajuda</b> para instruções e para mandar seu feedback.</div>
 
   <form class="quick" id="quickForm">
     <label for="quick" style="margin-top:0">Diga ou digite uma tarefa</label>
@@ -135,6 +135,7 @@
   <button id="testBtn">Testar aviso</button>
   <button id="calBtn">📅 Calendário</button>
   <button id="settingsBtn">Configurações</button>
+  <button id="syncBtn" data-sync>☁ Entrar para sincronizar</button>
   <button id="helpBtn">❓ Ajuda e feedback</button>
 </div></div>
 
@@ -182,6 +183,7 @@
   <form class="sheet" id="setForm">
     <h2 id="setTitle">Configurações</h2>
     <div class="hint" id="setIntro"></div>
+    <button type="button" data-sync id="syncBtn2" style="width:100%;margin:8px 0">☁ Já uso em outro aparelho? Entrar e trazer minha agenda</button>
     <label for="sName">Seu nome</label><input id="sName" placeholder="Como quer ser chamado">
     <div class="grid2">
       <div><label for="sStart">Início do expediente</label><input id="sStart" type="time" required></div>
@@ -488,7 +490,7 @@
     }catch(e){ if(raw){ try{ localStorage.setItem(KEY + '-recuperacao', raw); }catch(e2){} } }
     return blank();
   }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast('Não consegui salvar neste navegador. Use "Copiar meus dados" para não perder nada.'); } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ toast('Não consegui salvar neste navegador. Use "Copiar meus dados" para não perder nada.'); } try{ if(window.AgendaSync) window.AgendaSync.changed(); }catch(e){} }
   const S = () => state.settings;
 
   // ---------- Utilidades de horário ----------
@@ -802,6 +804,21 @@
   $('icsAll').onclick = () => exportIcs(state.tasks.filter(t => !t.done && !t.cancelled && t.date >= todayIso()).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)), 'agenda-pendentes.ics');
   $('icsCopy').onclick = () => { $('icsText').select(); try{ navigator.clipboard.writeText($('icsText').value).then(()=>toast('Texto copiado.')).catch(()=>toast('Selecione o texto e copie.')); }catch(e){ toast('Selecione o texto e copie.'); } };
 
+  // Ponte para a sincronização entre aparelhos (sync.js)
+  window.AgendaApp = {
+    get: () => state,
+    persist: () => { try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} },
+    refresh: () => {
+      if(editing) editing = state.tasks.find(x => x.id === editing.id) || null;
+      if(current && !current.test){ const c = state.tasks.find(x => x.id === current.id); if(c) current = c; }
+      render();
+    },
+    normalizeTask: (t) => { const n = normalize({settings:state.settings, tasks:[t]}); return n.tasks[0] || null; },
+    normalizeSettings: (st) => normalize({settings:st, tasks:[]}).settings,
+    toast: (m) => toast(m),
+    closeSetup: () => { if($('setModal').classList.contains('open') && $('setTitle').textContent.indexOf('Vamos') === 0){ $('setModal').classList.remove('open'); } }
+  };
+
   // ---------- Várias abas, teclado e acessibilidade ----------
   // Se a agenda estiver aberta em outra aba, adota o que ela salvou (evita apagar tarefas).
   window.addEventListener('storage', (e) => {
@@ -853,4 +870,5 @@
 </body>
 <script src="indicadores.js"></script>
 <script src="voz.js"></script>
+<script src="sync.js"></script>
 </html>
