@@ -1,6 +1,7 @@
 // Service worker da Agenda do Corretor: abre rápido e funciona sem internet.
-// Sempre tenta a internet primeiro (assim as correções chegam logo) e usa a cópia guardada se estiver offline.
-var CACHE = 'agenda-corretor-v1';
+// Sempre tenta a internet primeiro, sem usar a cópia velha do navegador (assim as correções chegam logo),
+// e usa a cópia guardada se estiver offline.
+var CACHE = 'agenda-corretor-v2';
 var SHELL = ['./', 'index.html', 'voz.js', 'indicadores.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {
@@ -21,7 +22,7 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   if (url.origin !== location.origin) return; // cotações e índices externos não passam por aqui
   e.respondWith(
-    fetch(req).then(function (res) {
+    fetch(req, { cache: 'no-cache' }).then(function (res) {
       if (res && res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
       return res;
     }).catch(function () {
