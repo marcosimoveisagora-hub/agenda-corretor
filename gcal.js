@@ -93,6 +93,19 @@
     if (window.AgendaSync && window.AgendaSync.changed) { var o = window.AgendaSync.changed; window.AgendaSync.changed = function () { try { o.apply(this, arguments); } catch (e) {} schedule(); }; }
     if (S.on) schedule();
   }
+  // botão "Instalar o app": aparece só quando o navegador permite instalar (e some depois de instalado)
+  var dp = null, ib = null;
+  function standalone() { try { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone; } catch (e) { return false; } }
+  function showInstall() {
+    if (!dp || standalone() || ib) return;
+    var ref = document.getElementById('gcalBtn'); if (!ref || !ref.parentNode) return;
+    ib = document.createElement('button'); ib.type = 'button'; ib.id = 'instBtn'; ib.className = ref.className; ib.textContent = '⬇ Instalar o app';
+    ib.addEventListener('click', function () { if (!dp) return; var p = dp; dp = null; try { p.prompt(); p.userChoice.then(function () { hideInstall(); }); } catch (e) {} });
+    ref.parentNode.insertBefore(ib, ref);
+  }
+  function hideInstall() { if (ib && ib.parentNode) ib.parentNode.removeChild(ib); ib = null; dp = null; }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dp = e; if (document.readyState !== 'loading') showInstall(); else document.addEventListener('DOMContentLoaded', showInstall); });
+  window.addEventListener('appinstalled', hideInstall);
   window.AgendaGcal = { setToken: setToken, run: run, _state: function () { return S; }, _evId: evId };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
